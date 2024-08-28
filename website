@@ -1,0 +1,345 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pascal Kohutiar's Professional Web Page</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="#about">About Me</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#education">Education</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <header>
+        <div class="header-content">
+            <h1>Pascal Kohutiar</h1>
+            <p>Dedicated Programmer, Avid Learner, and Enthusiastic Problem Solver</p>
+            <a href="#contact" class="cta-button">Get in Touch</a>
+        </div>
+    </header>
+
+    <!-- About Me Section -->
+    <section id="about">
+        <div class="container">
+            <h2>About Me</h2>
+            <p>My name is Pascal Kohutiar, and I am a dedicated student with a passion for programming and technology. At the age of 10, I am currently attending Basis, where I am actively engaging in various coding challenges and projects. My experience spans 2.5 years of programming in Scratch and 1 year in Python. I am particularly enthusiastic about developing visually engaging projects and solving complex problems on platforms such as LeetCode and HackerRank.</p>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects">
+        <div class="container">
+            <h2>Projects</h2>
+            <div class="project-gallery">
+                <div class="project">
+                    <p><strong>Scratch Projects:</strong> Developed interactive stories and educational tools.</p>
+                </div>
+                <div class="project">
+                    <p><strong>LeetCode Challenges:</strong> Participated in the 30 Days of Code Challenge, enhancing problem-solving skills.</p>
+                </div>
+                <div class="project">
+                    <p><strong>HackerRank Solutions:</strong> Regularly solve daily coding problems to maintain and improve my programming proficiency.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills">
+        <div class="container">
+            <h2>Skills</h2>
+            <ul class="skills-list">
+                <li>Proficient in Python</li>
+                <li>Experienced in JavaScript</li>
+                <li>Advanced in Scratch</li>
+                <li>Knowledgeable in HTML & CSS</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Education Section -->
+    <section id="education">
+        <div class="container">
+            <h2>Education</h2>
+            <p>I am currently a fifth-grade student at Basis, where I am actively pursuing my interest in Physical Geography and advanced Mathematics. My academic journey includes learning at a level above my grade in subjects such as Math, where I focus on concepts typically covered in the seventh and eighth grades. I am also proactively studying functions in mathematics to further my understanding ahead of the curriculum.</p>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="container">
+            <h2>Contact Me</h2>
+            <form action="https://formspree.io/f/your-form-id" method="POST">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="_replyto" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message:</label>
+                    <textarea id="message" name="message" rows="5" required></textarea>
+                </div>
+
+                <button type="submit" class="cta-button">Send</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Pascal Kohutiar. All rights reserved.</p>
+            <div class="social-media">
+                <a href="https://twitter.com/yourprofile" target="_blank">Twitter</a> |
+                <a href="https://github.com/yourprofile" target="_blank">GitHub</a> |
+                <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Smooth Scrolling -->
+    <script>
+        document.querySelectorAll('nav ul li a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+/*style.css*/
+/* Resetting CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #121212 !important; /* Ensure black background */
+    color: #ffffff !important; /* White text color */
+    line-height: 1.6;
+}
+
+.container {
+    width: 85%;
+    max-width: 1200px;
+    margin: auto;
+    overflow: hidden;
+}
+
+nav {
+    background-color: #1f1f1f; /* Slightly lighter dark grey for contrast */
+    padding: 20px 0;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid #333;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+}
+
+nav ul li {
+    margin: 0 20px;
+}
+
+nav ul li a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+    font-size: 16px;
+}
+
+nav ul li a:hover {
+    color: #00c0ff;
+}
+
+header {
+    background-color: #333; /* Darker header for emphasis */
+    color: #ffffff;
+    text-align: center;
+    padding: 200px 0 100px;
+    margin-top: 60px; /* Space for fixed nav */
+    border-bottom: 2px solid #00c0ff;
+}
+
+.header-content {
+    max-width: 800px;
+    margin: auto;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 15px 30px;
+    background-color: #00c0ff;
+    color: #121212;
+    border: none;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 18px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin-top: 30px;
+}
+
+.cta-button:hover {
+    background-color: #009ecc;
+    color: #ffffff;
+}
+
+section {
+    padding: 80px 0;
+    border-bottom: 1px solid #333;
+    background-color: #121212 !important; /* Ensure black background */
+}
+
+h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #00c0ff; /* Accent color for headings */
+    text-align: center;
+}
+
+.project-gallery {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.project {
+    flex: 1 1 calc(33% - 30px);
+    background-color: #1f1f1f;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 192, 255, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.project:hover {
+    transform: translateY(-5px);
+}
+
+.skills-list {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding: 0;
+    list-style: none;
+}
+
+.skills-list li {
+    flex: 1 1 45%;
+    background-color: #1f1f1f;
+    margin: 10px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 192, 255, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.skills-list li:hover {
+    transform: translateY(-5px);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #00c0ff;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 15px;
+    border-radius: 8px;
+    border: none;
+    background-color: #333;
+    color: #ffffff;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    font-size: 16px;
+    outline: none;
+}
+
+input:focus, textarea:focus {
+    border: 2px solid #00c0ff;
+}
+
+footer {
+    background-color: #1f1f1f;
+    color: #ffffff;
+    text-align: center;
+    padding: 30px 0;
+}
+
+footer .social-media a {
+    color: #00c0ff;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+footer .social-media a:hover {
+    color: #ffffff;
+}
+
+@media (max-width: 768px) {
+    .project-gallery {
+        flex-direction: column;
+    }
+
+    .skills-list {
+        flex-direction: column;
+    }
+
+    nav ul {
+        flex-direction: column;
+    }
+
+    header {
+        padding: 150px 20px 80px;
+    }
+
+    .cta-button {
+        font-size: 16px;
+        padding: 12px 25px;
+    }
+}
