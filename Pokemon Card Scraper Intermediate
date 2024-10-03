@@ -1,0 +1,194 @@
+import requests
+from bs4 import BeautifulSoup
+import time
+import random
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import pandas as pd
+import numpy as np
+import datetime
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+
+# Function to display colored text in the terminal
+def print_colored(text, color):
+    # Mapping for terminal color codes
+    colors = {
+        "red": "\033[91m",
+        "green": "\033[92m",
+        "yellow": "\033[93m",
+        "blue": "\033[94m",
+        "orange": "\033[33m",
+        "reset": "\033[0m"
+    }
+    print(f"{colors.get(color, colors['reset'])}{text}{colors['reset']}")
+
+# List of User-Agent strings for rotation
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15A372 Safari/604.1"
+]
+
+# Function to select random headers
+def get_random_headers():
+    headers = {
+        "User-Agent": random.choice(USER_AGENTS)
+    }
+    return headers
+
+# Function to scrape prices from TCGPlayer
+def scrape_tcgplayer_prices(card_name):
+    search_url = f"https://www.tcgplayer.com/search/all/product?q={card_name.replace(' ', '%20')}"
+    headers = get_random_headers()
+
+    try:
+        response = requests.get(search_url, headers=headers)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        price_tags = soup.find_all('span', class_='price-point__data')
+        prices = [float(tag.text.replace('$', '').strip()) for tag in price_tags]
+        return prices if prices else []
+    except Exception:
+        print_colored("Unable to fetch prices from TCGPlayer.", "red")
+        return []
+
+# Function to scrape prices from eBay
+def scrape_ebay_prices(card_name):
+    search_url = f"https://www.ebay.com/sch/i.html?_nkw={card_name.replace(' ', '+')}"
+    headers = get_random_headers()
+
+    try:
+        response = requests.get(search_url, headers=headers)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        price_tags = soup.find_all('span', class_='s-item__price')
+        prices = []
+        for tag in price_tags:
+            price_text = tag.text.replace('$', '').replace(',', '').strip()
+            try:
+                price = float(price_text)
+                prices.append(price)
+            except ValueError:
+                continue
+        return prices if prices else []
+    except Exception:
+        print_colored("Unable to fetch prices from eBay.", "red")
+        return []
+
+# Function to scrape prices from CardMarket
+def scrape_cardmarket_prices(card_name):
+    search_url = f"https://www.cardmarket.com/en/Pokemon/Products/Search?searchString={card_name.replace(' ', '+')}"
+    headers = get_random_headers()
+
+    try:
+        response = requests.get(search_url, headers=headers)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        price_tags = soup.find_all('div', class_='price-container')
+        prices = []
+        for tag in price_tags:
+            price_text = tag.text.replace('€', '').replace(',', '.').strip()
+            try:
+                price = float(price_text)
+                prices.append(price)
+            except ValueError:
+                continue
+        return prices if prices else []
+    except Exception:
+        print_colored("Unable to fetch prices from CardMarket.", "red")
+        return []
+
+# Function to make parallel requests
+def get_prices_in_parallel(card_name):
+    all_prices = []
+
+    for source, scraper in [("TCGPlayer", scrape_tcgplayer_prices),
+                            ("eBay", scrape_ebay_prices),
+                            ("CardMarket", scrape_cardmarket_prices)]:
+        try:
+            prices = scraper(card_name)
+            if prices:
+                all_prices.extend(prices)
+                print_colored(f"Prices from {source}: {prices}", "green")
+            else:
+                print_colored(f"No prices found from {source}.", "orange")
+        except Exception as e:
+            print_colored(f"Unable to fetch prices from {source}. Error: {e}", "red")
+
+        time.sleep(5)  # Add a 5-second delay between requests to avoid being rate-limited
+
+    return all_prices
+
+# Function to calculate the average price
+def average_price(prices):
+    return sum(prices) / len(prices) if prices else 0
+
+# Function to predict future prices
+def predict_prices(historical_data):
+    df = pd.DataFrame(historical_data)
+    df['Date'] = pd.to_datetime(df['Date'])
+    df['DateOrdinal'] = df['Date'].map(datetime.datetime.toordinal)
+
+    # Features and target
+    X = df[['DateOrdinal']]  # Dates
+    y = df['Price']  # Prices
+
+    model = LinearRegression()
+    model.fit(X, y)
+
+    # Predict for the next 7 days
+    future_dates = pd.date_range(start=df['Date'].max() + pd.Timedelta(days=1), periods=7)
+    future_dates_ordinal = np.array([date.toordinal() for date in future_dates]).reshape(-1, 1)
+    predicted_prices = model.predict(future_dates_ordinal)
+
+    return future_dates, predicted_prices
+
+# Function to plot price trends and predictions
+def plot_prices(historical_data, future_dates, predicted_prices):
+    df = pd.DataFrame(historical_data)
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(df['Date'], df['Price'], label='Historical Prices', color='blue')
+    plt.plot(future_dates, predicted_prices, label='Predicted Prices', linestyle='--', color='green')
+    plt.xlabel('Date')
+    plt.ylabel('Price (USD)')
+    plt.title('Pokémon Card Price Prediction')
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+# Function to store historical data
+def store_data(historical_data, card_name, avg_price):
+    today = datetime.datetime.today().strftime('%Y-%m-%d')
+    historical_data.append({"Date": today, "Price": avg_price})
+
+# Main function to get prices, predict future prices, and notify user
+def get_card_prices(card_name, historical_data):
+    all_prices = get_prices_in_parallel(card_name)
+    avg_price = average_price(all_prices)
+
+    if avg_price:
+        store_data(historical_data, card_name, avg_price)
+        print_colored(f"Average price for {card_name}: ${avg_price:.2f}", "blue")
+
+        # Predict future prices
+        future_dates, predicted_prices = predict_prices(historical_data)
+
+        # Plot historical and predicted prices
+        plot_prices(historical_data, future_dates, predicted_prices)
+    else:
+        print_colored(f"No average price could be calculated for {card_name}.", "yellow")
+
+# Main program
+def main():
+    card_name = input("Enter the Pokémon card name: ")
+    historical_data = []  # You can also load previous data from a file
+    while True:
+        get_card_prices(card_name, historical_data)
+        time.sleep(3600)  # Wait for 1 hour before checking again
+
+if __name__ == "__main__":
+    main()
