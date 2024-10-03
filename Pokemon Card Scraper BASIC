@@ -1,0 +1,164 @@
+import requests
+from bs4 import BeautifulSoup
+import time
+import random
+
+# List of User-Agent strings for rotation
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15A372 Safari/604.1"
+]
+
+# Optional list of proxies for rotation (leave empty if not needed)
+PROXIES = []
+
+# Function to select a random User-Agent and Proxy
+def get_random_headers_and_proxy():
+    headers = {
+        "User-Agent": random.choice(USER_AGENTS)
+    }
+    proxy = random.choice(PROXIES) if PROXIES else None
+    return headers, {"http": proxy, "https": proxy} if proxy else None
+
+# Scrape prices from TCGPlayer
+def scrape_tcgplayer_prices(card_name):
+    simplified_name = card_name.split(' - ')[0]
+    search_url = f"https://www.tcgplayer.com/search/all/product?q={simplified_name.replace(' ', '%20')}"
+
+    headers, proxy = get_random_headers_and_proxy()
+
+    try:
+        response = requests.get(search_url, headers=headers, proxies=proxy)
+        if response.status_code != 200:
+            print(f"Failed to fetch data from TCGPlayer: {response.status_code}")
+            return []
+    except requests.RequestException as e:
+        print(f"Error fetching data from TCGPlayer: {e}")
+        return []
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    price_tags = soup.find_all('span', class_='price-point__data')
+
+    if not price_tags:
+        print("No prices found on TCGPlayer.")
+        return []
+
+    prices = [float(tag.text.replace('$', '').strip()) for tag in price_tags]
+    print(f"Prices from TCGPlayer: {prices}")
+    return prices
+
+# Scrape prices from eBay with retries
+def scrape_ebay_prices(card_name, retries=3):
+    search_url = f"https://www.ebay.com/sch/i.html?_nkw={card_name.replace(' ', '+')}"
+
+    headers, proxy = get_random_headers_and_proxy()
+
+    for attempt in range(retries):
+        try:
+            response = requests.get(search_url, headers=headers, proxies=proxy)
+            if response.status_code == 200:
+                break
+            else:
+                print(f"Failed to fetch data from eBay: {response.status_code}, retrying...")
+        except requests.RequestException as e:
+            print(f"Error fetching data from eBay: {e}, retrying...")
+
+        time.sleep(2)  # Delay between retries
+    else:
+        print("Failed to fetch data from eBay after multiple attempts.")
+        return []
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    price_tags = soup.find_all('span', class_='s-item__price')
+
+    if not price_tags:
+        print("No prices found on eBay.")
+        return []
+
+    prices = []
+    for tag in price_tags:
+        price_text = tag.text.replace('$', '').replace(',', '').strip()
+        try:
+            price = float(price_text)
+            prices.append(price)
+        except ValueError:
+            continue
+
+    print(f"Prices from eBay: {prices}")
+    return prices
+
+# Scrape prices from CardMarket
+def scrape_cardmarket_prices(card_name):
+    search_url = f"https://www.cardmarket.com/en/Pokemon/Products/Search?searchString={card_name.replace(' ', '+')}"
+
+    headers, proxy = get_random_headers_and_proxy()
+
+    try:
+        response = requests.get(search_url, headers=headers, proxies=proxy)
+        if response.status_code != 200:
+            print(f"Failed to fetch data from CardMarket: {response.status_code}")
+            return []
+    except requests.RequestException as e:
+        print(f"Error fetching data from CardMarket: {e}")
+        return []
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    price_tags = soup.find_all('div', class_='price-container')
+
+    if not price_tags:
+        print("No prices found on CardMarket.")
+        return []
+
+    prices = []
+    for tag in price_tags:
+        price_text = tag.text.replace('€', '').replace(',', '.').strip()
+        try:
+            price = float(price_text)
+            prices.append(price)
+        except ValueError:
+            continue
+
+    print(f"Prices from CardMarket: {prices}")
+    return prices
+
+# Function to calculate the average price
+def average_price(prices):
+    if len(prices) == 0:
+        return 0
+    return sum(prices) / len(prices)
+
+# Function to scrape multiple websites
+def get_card_prices(card_name):
+    all_prices = []
+
+    # Try getting prices from TCGPlayer
+    tcgplayer_prices = scrape_tcgplayer_prices(card_name)
+    if tcgplayer_prices:
+        all_prices.extend(tcgplayer_prices)
+
+    # Try getting prices from eBay with retry logic
+    ebay_prices = scrape_ebay_prices(card_name)
+    if ebay_prices:
+        all_prices.extend(ebay_prices)
+
+    # Try getting prices from CardMarket
+    cardmarket_prices = scrape_cardmarket_prices(card_name)
+    if cardmarket_prices:
+        all_prices.extend(cardmarket_prices)
+
+    # If we have prices from any source, calculate the average
+    if all_prices:
+        avg_price = average_price(all_prices)
+        print(f"Average price from all sources for '{card_name}': ${avg_price:.2f}")
+    else:
+        print(f"No prices found for '{card_name}' on any source.")
+
+# Main program
+def main():
+    card_name = input("Enter the Pokémon card name: ")
+    get_card_prices(card_name)
+
+if __name__ == "__main__":
+    main()
