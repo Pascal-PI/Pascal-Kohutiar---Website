@@ -1,0 +1,83 @@
+import sys
+print(sys.argv)
+
+if len(sys.argv) == 1:
+    f = open('bright.txt')
+else:
+    f = open(sys.argv[1])
+
+
+txt_file = """The day was bright, and the sun made the bright field glow with bright colors.  In the
+    bright morning air, the children laughed, and their laughter was bright too.  The bright
+    sky stretched wide, and the bright wind carried bright sounds of birds.  Everyone felt
+    bright energy rising, bright hopes filling their hearts, bright dreams shaping the day.
+    Even the bright grass seemed brighter, and the bright flowers opened their bright petals.
+    It was a bright, bright, bright day, a day full of bright joy, bright smiles, and bright
+    beginnings that would make bright memories last forever."""
+
+txt_file = """bright , and"""
+
+file = f.readlines()
+line_num = 1
+line_amt = {}
+
+for line in file:
+    for word in line:
+        for char in word:
+            if char not in "a b c d e f g h i k l m n o p q r s t u v w z y z ' ".split():
+                line.replace(char, '')
+
+#    print(f'{index}: {line[:-1]}')
+#    index += 1
+for line in file:
+    for word in line.split():
+        if word not in line_amt:
+            line_amt[word] = [line_num]
+        else:
+            line_amt[word].append(line_num)
+
+    line_num += 1
+
+# exit()
+one_occurence = []
+
+def seperate(values, predicate):
+    passed = []
+    failed = []
+    
+    for e in values:
+        if predicate(e):
+            passed.append(e)
+        else:
+            failed.append(e)
+
+    return (passed, failed)
+
+multiples, singles = seperate(line_amt.items(), lambda pair: len(pair[1]) > 1)
+#print(multiples)
+#print(singles)
+
+longest = sorted(multiples, key = lambda t: len(t[0]))[-1]
+#print(f"Longest: {longest}")
+
+pairs = sorted(line_amt.items(), key = lambda t: 1/len(t[1]))
+
+width = len(longest[0]) 
+#print("width:", width)
+
+print(f'{"Word":{width}} Occurences')
+
+for word, lines in pairs:
+    #print(f'{word} {len(line_amt[word])} {tuple(set(line_amt[word]))}')
+    #print(f't[0]')
+    if len(lines) == 1:
+        one_occurence.append(word)
+    else:
+        print(f'{word:{width}} {len(line_amt[word])} {tuple(set(line_amt[word]))}')
+
+print('One Occurence: ')
+one_occurence.sort()
+
+print(one_occurence[0], end = '')
+for e in one_occurence[1:]:
+    print(f", {e}", end = '')
